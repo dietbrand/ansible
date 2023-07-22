@@ -1,0 +1,25 @@
+---
+- name: Init tasks
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Update and upgrade
+      apt:
+        update_cache: yes
+        upgrade: yes
+        cache_valid_time: 86400
+    - name: Install vim
+      apt:
+        name: vim
+        state: present
+    - name: Uninstall other editors
+      apt:
+        state: absent
+        pkg:
+          - pico
+          - emacs
+          - nano
+    - name: Set hostname
+      hostname:
+        name: '{{inventory_hostname}}'

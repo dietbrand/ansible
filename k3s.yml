@@ -1,0 +1,62 @@
+---
+- name: Prepare pi
+  hosts: all
+  become: true
+  gather_facts: false
+
+  handlers:
+    - name: reboot-pi
+      ansible.builtin.reboot:
+
+  tasks:
+    - name: Set correct cgroups in cmdboot
+      replace:
+        path: /boot/cmdline.txt
+        regexp: '^([\w](?!.*\b{{ item }}\b).*)$'
+        replace: '\1 {{ item }}'
+      with_items:
+        - 'cgroup_memory=1'
+        - 'cgroup_enable=memory'
+      notify: reboot-pi
+    - name: Download K3s install script.
+      get_url:
+        url: https://get.k3s.io
+        dest: '~/k3s_install.sh'
+        mode: a+x
+
+- name: Install k3s on Master
+  hosts: k3smaster
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Run install script
+      shell: >-
+        ~/k3s_install.sh >> ~/k3s_install_log.txt
+      args:
+        chdir: '~'
+        creates: /var/lib/rancher/k3s/server/node-token
+
+    - name: Get node token
+      command: cat /var/lib/rancher/k3s/server/node-token
+      changed_when: false
+      register: node_token_output
+
+    - name: Set node token as fact
+      set_fact:
+        node_token: '{{ node_token_output.stdout_lines[0] }}'
+
+- name: Install k3s on Nodes
+  hosts: k3sworker
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Run install script
+      shell: >-
+        K3S_URL="https://{{ groups['k3smaster'][0] }}:6443"
+        K3S_TOKEN="{{ hostvars[groups['k3smaster'][0]]['node_token'] }}"
+        ~/k3s_install.sh >> ~/k3s_install_log.txt
+      args:
+        chdir: '~'
+        creates: /var/lib/rancher/k3s/agent/kubelet.kubeconfig
