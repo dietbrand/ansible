@@ -1,10 +1,9 @@
-master-001.haven2.net ansible_host=192.168.68.110
-worker-001.haven2.net ansible_host=192.168.68.111
-worker-002.haven2.net ansible_host=192.168.68.112
-
 [k3smaster]
 master-001.haven2.net
 
 [k3sworker]
 worker-001.haven2.net
 worker-002.haven2.net
+
+[digitalocean]
+server02.haven2.net
