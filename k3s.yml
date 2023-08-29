@@ -1,6 +1,6 @@
 ---
 - name: Prepare pi
-  hosts: all
+  hosts: k3smaster:k3sworker
   become: true
   gather_facts: false
 
