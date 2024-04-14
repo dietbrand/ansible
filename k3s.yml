@@ -31,7 +31,7 @@
 
   tasks:
     - name: Run install script
-      shell: >-
+      command: >-
         ~/k3s_install.sh >> ~/k3s_install_log.txt
       args:
         chdir: '~'
@@ -53,7 +53,7 @@
 
   tasks:
     - name: Run install script
-      shell: >-
+      command: >-
         K3S_URL="https://{{ groups['k3smaster'][0] }}:6443"
         K3S_TOKEN="{{ hostvars[groups['k3smaster'][0]]['node_token'] }}"
         ~/k3s_install.sh >> ~/k3s_install_log.txt
